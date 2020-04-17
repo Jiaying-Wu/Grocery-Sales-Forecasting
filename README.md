@@ -8,13 +8,13 @@ This repo is the work summary of Corporación Favorita Grocery Sales Forecasting
 
 R markdown under `report` folder provide data insight of Corporación Favorita Grocery Sales data.
 
-Further report detail under [report](https://github.com/Jiaying-Wu/Restaurant-Visitor-Forecasting/tree/master/report) folder.
+Further report detail under [report](https://github.com/Jiaying-Wu/Grocery-Sales-Forecasting/tree/master/report) folder.
 
 ### Modeling
 
 Under `model` folder, R Scripts to process grocery sales data and models to forecast the day-to-day grocery sale of 200,000+ products in 54 supermarkets.
 
-Further modeling detail under [model](https://github.com/Jiaying-Wu/Melbourne-House-Price-Prediction/tree/master/model) folder.
+Further modeling detail under [model](https://github.com/Jiaying-Wu/Grocery-Sales-Forecasting/tree/master/model) folder.
 
 ### Source
 
