@@ -11,7 +11,9 @@ knitr::opts_chunk$set(
   error = FALSE,
   warning = FALSE,
   fig.path = "plot/",
-  fig.align = "center"
+  fig.align = "center",
+  fig.width = 6,
+  fig.height = 4
 )
 ```
 
@@ -22,11 +24,25 @@ library(lubridate)
 library(brotools)
 ```
 
-```{r load_data}
+```{r write_sample_train, eval=FALSE}
 set.seed(001)
 sample_train <- fread("../data/train_integ_2017.csv", nThread = parallel::detectCores()) %>% 
   as_tibble() %>%
-  sample_frac(0.1)
+  sample_frac(0.1,)
+fwrite(sample_train, "../data/sample_train.csv")
+```
+
+```{r load_data}
+sample_train <- fread("../data/sample_train.csv", 
+                      nThread = parallel::detectCores(),
+                      stringsAsFactors = TRUE) %>% 
+  as_tibble() %>%
+  mutate(date = ymd(date))
+sample_train$store_nbr <- as.factor(sample_train$store_nbr)
+sample_train$cluster <- as.factor(sample_train$cluster)
+sample_train$item_nbr <- as.factor(sample_train$item_nbr)
+sample_train$class <- as.factor(sample_train$class)
+sample_train$perishable <- as.factor(sample_train$perishable)
 ```
 
 # Grocery Sales Forecasting - Report
@@ -50,12 +66,217 @@ sample_train %>%
 summary(sample_train$unit_sales)
 ```
 
-It suggested most of the sales less than 10 units per day in each supermarket.
+It suggested most of the item sold less than 10 units per supermarket per day.
 
 #### `date`
 
-```{r}
-sample_train %>%
-  
+```{r plot_date}
+total_us_date <- sample_train %>%
+  group_by(date) %>%
+  summarise(total_unit_sales = sum(unit_sales)) 
+
+total_us_date %>%
+  ggplot(aes(x = date, y = total_unit_sales)) +
+  geom_line(color = "white") +
+  theme_blog() +
+  ggtitle("Total Unit Sales via Date")
 ```
+
+The plot suggested strong seasonality in the total unit sale.
+
+#### `store_nbr`: store id.
+
+```{r plot_store_nbr,fig.height=4, fig.width=10}
+sample_train %>%
+  ggplot(aes(x = store_nbr, y = unit_sales, color = store_nbr)) +
+  geom_boxplot() +
+  scale_y_log10() +
+  theme_blog() +
+  ggtitle("Boxplot of Daily Unit Sales in Each Store") +
+  theme(legend.position = "none") +
+  xlab("store number")
+```
+
+In general, the median unit sale of 54 store is similiar, the plot suggest `store_nbr` can explain some of variation in `unit_sales`. However, level merging of `store_nbr` might required.
+
+#### `item_nbr`: item id.
+
+```{r plot_item_nbr}
+mean_us_item <- sample_train %>%
+  group_by(item_nbr) %>%
+  summarise(mean_unit_sales = mean(unit_sales))
+
+mean_us_item %>%
+  ggplot(aes(x = as.numeric(item_nbr), y = mean_unit_sales)) +
+  geom_line(color = "lightblue") +
+  scale_y_log10() +
+  theme_blog() +
+  ggtitle("Mean Unit Sales of Each Item") +
+  theme(legend.position = "none") +
+  xlab("item number")
+```
+
+```{r item_num}
+NROW(unique(sample_train$item_nbr))
+```
+
+That is 4000 different items, the item id should be consider as factor type, plot in numerical order only in visualization purpose. The plot suggested `item_nbr` can explain a lot varaition of `unit_sales`. However, level merging of `item_nbr` might required.
+
+#### `onpromotion`: wether on promotion.
+
+```{r plot_onpromotion}
+sample_train %>%
+  ggplot(aes(x = onpromotion, y = unit_sales, color = onpromotion)) +
+  geom_boxplot() +
+  scale_y_log10() +
+  theme_blog() +
+  theme(legend.position = "none") +
+  ggtitle("Boxplot of Unit Sales via Promotion")
+```
+
+The plot suggested the unit sales will slightly increased while the item is on promotion.
+
+#### `family`: item family.
+
+```{r plot_family,fig.height=4, fig.width=10}
+sample_train %>%
+  ggplot(aes(x = family, y = unit_sales, color = family)) +
+  geom_boxplot() +
+  scale_y_log10() +
+  scale_x_discrete(label = abbreviate) +
+  theme_blog() +
+  theme(legend.position = "none", axis.text.x = element_text(angle = 90, hjust = 1)) +
+  ggtitle("Boxplot of Unit Sales via Item Family") +
+  xlab("item family")
+```
+
+```{r num_family}
+NROW(unique(sample_train$family))
+```
+
+33 level in `family`, this variable explain lot of variation of `unit_sales`. Consider it is a fatcor variable, level might a bit too much. Since `family` is a feature related to item, we can integrated `family` and `item_nbr` to generate new features via clustering.
+
+#### `class`: item class.
+
+```{r plot_class}
+mean_us_class <- sample_train %>%
+  group_by(class) %>%
+  summarise(mean_unit_sales = mean(unit_sales))
+
+mean_us_class %>%
+  ggplot(aes(x = as.numeric(class), y = mean_unit_sales)) +
+  geom_line(color = "lightgreen") +
+  #scale_y_log10() +
+  theme_blog() +
+  ggtitle("Mean Unit Sales of Item Class") +
+  xlab("item class")
+```
+
+```{r num_class}
+NROW(unique(sample_train$class))
+```
+
+That is 331 different item class. The item class should be consider as factor type, plot in numerical order only in visualization purpose. The plot suggested `class` can explain a lot varaition of `unit_sales`. 
+
+Since `class` is also a feature related to item, we can integrated `class`, `family` and `item_nbr` to generate new features via item clustering.
+
+#### `perishable`: wether item is perishable.
+
+```{r plot_perishable}
+sample_train %>%
+  ggplot(aes(x = perishable, y = unit_sales, color = perishable)) +
+  geom_boxplot() +
+  scale_y_log10() +
+  theme_blog() +
+  theme(legend.position = "none") +
+  ggtitle("Boxplot of Unit Sales via Perishable Item")
+```
+
+In this plot, 1 mean the item is perishable and 0 is the contrast. The plot suggested the perishable item will have a higher sale in units.
+
+#### `city`
+
+```{r plot_city, fig.height=4, fig.width=8}
+sample_train %>%
+  ggplot(aes(x = city, y = unit_sales, color = city)) +
+  geom_boxplot() +
+  scale_y_log10() +
+  scale_x_discrete(label = abbreviate) +
+  theme_blog() +
+  theme(legend.position = "none") +
+  ggtitle("Boxplot of Unit Sales via City")
+```
+
+The supermarket in city Quito have the highest mean unit sales comparing others.
+
+```{r num_city}
+NROW(unique(sample_train$city))
+```
+
+#### `state`
+
+```{r plot_state, fig.height=4, fig.width=8}
+sample_train %>%
+  ggplot(aes(x = state, y = unit_sales, color = state)) +
+  geom_boxplot() +
+  scale_y_log10() +
+  scale_x_discrete(label = abbreviate) +
+  theme_blog() +
+  theme(legend.position = "none") +
+  ggtitle("Boxplot of Unit Sales via State")
+```
+
+```{r num_state}
+NROW(unique(sample_train$state))
+```
+
+That is 22 city in 16 state of this dataset, both of them explain some of the variation in `unit_sales`. However, some of the level share the similar mean in both varaible. Since the number of city only slightly smaller than the number of state, we can integrated `city` and ` state` to generate new features.
+
+#### `type`: store type.
+
+```{r plot_type}
+sample_train %>%
+  ggplot(aes(x = type, y = unit_sales, color = type)) +
+  geom_boxplot() +
+  scale_y_log10() +
+  theme_blog() +
+  theme(legend.position = "none") +
+  ggtitle("Boxplot of Unit Sales via Store Type") +
+  xlab("store type")
+```
+
+The item in store type A have the higest mean unit sales and item in store type E have the lowest mean unit sales. The mean unit sale in each store type share the similar value, future level merging for `type` might required.
+
+#### `cluster`: store cluster.
+
+```{r plot_cluster, fig.height=4, fig.width=8}
+sample_train %>%
+  ggplot(aes(x = cluster, y = unit_sales, color = cluster)) +
+  geom_boxplot() +
+  scale_y_log10() +
+  theme_blog() +
+  theme(legend.position = "none") +
+  ggtitle("Boxplot of Unit Sales via Store Cluster") +
+  xlab("store cluster")
+```
+
+The plot suggested supermarket in cluster 5, 8, 11 and 14 have a higher mean unit sales than others. Since some of the cluster have the similar mean unit sale, future level merging for `type` might required.
+
+#### `dcoilwtico`: oil price.
+
+```{r plot_dcoilwtico}
+mean_us_dcoilwtico <- sample_train %>%
+  group_by(dcoilwtico) %>%
+  summarise(mean_unit_sales = mean(unit_sales))
+
+mean_us_dcoilwtico %>%
+  ggplot(aes(x = dcoilwtico, y = mean_unit_sales)) +
+  geom_point(color = "purple") +
+  theme_blog() +
+  geom_smooth(se = FALSE) +
+  ggtitle("Mean Unit Sales via Oil price") +
+  xlab("oil price")
+```
+
+The plot suggested the mean unit sales is positive associated with the oil price.
 
