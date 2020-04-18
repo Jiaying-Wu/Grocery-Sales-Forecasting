@@ -22,14 +22,24 @@ This repo is the work summary of Corporación Favorita Grocery Sales Forecasting
 
 ### Report
 
-R markdown under `report` folder provide data insight of Corporación Favorita Grocery Sales data.
+Under [`report`](https://github.com/Jiaying-Wu/Grocery-Sales-Forecasting/tree/master/report) folder, contain source code for reporting.
+
+* [`report/README.Rmd`](https://github.com/Jiaying-Wu/Grocery-Sales-Forecasting/blob/master/report/README.Rmd): R markdown to provide data insight of Corporación Favorita Grocery Sales data.
 
 Further report detail under [report](https://github.com/Jiaying-Wu/Grocery-Sales-Forecasting/tree/master/report) folder.
 
-### Modeling
+### Data Processing
 
-Under `model` folder, R Scripts to process grocery sales data and models to forecast the day-to-day grocery sale of 200,000+ products in 54 supermarkets.
+Under [`process`](https://github.com/Jiaying-Wu/Grocery-Sales-Forecasting/tree/master/process) folder, contain source code for data processing.
 
+* * `model/data_integration.R`: R Script to integrated `train.csv` and `test.csv` with `stores.csv`, `items.csv` and `transactions.csv`.
+
+Further processing detail under [process](https://github.com/Jiaying-Wu/Grocery-Sales-Forecasting/tree/master/process) folder.
+
+### Data Modeling
+
+Under [`model`](https://github.com/Jiaying-Wu/Grocery-Sales-Forecasting/tree/master/model) folder, contain source code for data modeling.
+R Scripts to process data and build model for forecasting grocery sales:
 
 Further modeling detail under [model](https://github.com/Jiaying-Wu/Grocery-Sales-Forecasting/tree/master/model) folder.
 
