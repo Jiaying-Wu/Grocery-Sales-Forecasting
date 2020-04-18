@@ -22,7 +22,7 @@ Further processing detail under [process](https://github.com/Jiaying-Wu/Grocery-
 
 ### Data Modeling
 
-Under [`model`](https://github.com/Jiaying-Wu/Grocery-Sales-Forecasting/tree/master/model) folder, contain source code for data modeling. R Scripts to process data and build model for forecasting grocery sales:
+Under [`model`](https://github.com/Jiaying-Wu/Grocery-Sales-Forecasting/tree/master/model) folder, contain source code for data modeling.
 
 Further modeling detail under [model](https://github.com/Jiaying-Wu/Grocery-Sales-Forecasting/tree/master/model) folder.
 
