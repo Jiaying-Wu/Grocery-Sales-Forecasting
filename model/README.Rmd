@@ -16,4 +16,4 @@ knitr::opts_chunk$set(
 )
 ```
 
-# Grocery Sales Forecasting - Modeling
+# Grocery Sales Forecasting - Data Modeling

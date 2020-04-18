@@ -16,7 +16,7 @@ Further report detail under [report](https://github.com/Jiaying-Wu/Grocery-Sales
 
 Under [`process`](https://github.com/Jiaying-Wu/Grocery-Sales-Forecasting/tree/master/process) folder, contain source code for data processing.
 
--   -   `model/data_integration.R`: R Script to integrated `train.csv` and `test.csv` with `stores.csv`, `items.csv` and `transactions.csv`.
+-   [`model/data_integration.R`](https://github.com/Jiaying-Wu/Grocery-Sales-Forecasting/blob/master/process/data_integration.R): R Script to integrated `train.csv` and `test.csv` with `stores.csv`, `items.csv` and `transactions.csv`.
 
 Further processing detail under [process](https://github.com/Jiaying-Wu/Grocery-Sales-Forecasting/tree/master/process) folder.
 

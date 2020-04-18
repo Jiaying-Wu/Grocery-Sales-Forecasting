@@ -1,3 +1,3 @@
 
-Grocery Sales Forecasting - Modeling
-====================================
+Grocery Sales Forecasting - Data Modeling
+=========================================
